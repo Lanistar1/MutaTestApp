@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,62 +6,70 @@ import {
   StyleSheet,
   FlatList,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import CustomButton from "../../components/Button";
 import colors from "../../components/colors";
 import { useNavigation } from "@react-navigation/native";
-
-const languageIcons = {
-  Swahili: require("../../assets/images/Swahili.png"),
-  Amharic: require("../../assets/images/Amharic.png"),
-  Yoruba: require("../../assets/images/Yoruba.png"),
-  Fula: require("../../assets/images/Fula.png"),
-  Igbo: require("../../assets/images/Igbo.png"),
-  Hausa: require("../../assets/images/Hausa.png"),
-  Oromo: require("../../assets/images/Oromo.png"),
-  Zulu: require("../../assets/images/Zulu.png"),
-  Shona: require("../../assets/images/Shona.png"),
-};
-
-const languages = [
-  { id: "1", name: "Swahili", icon: languageIcons.Swahili },
-  { id: "2", name: "Amharic", icon: languageIcons.Amharic },
-  { id: "3", name: "Yoruba", icon: languageIcons.Yoruba },
-  { id: "4", name: "Fula", icon: languageIcons.Fula },
-  { id: "5", name: "Igbo", icon: languageIcons.Igbo },
-  { id: "6", name: "Hausa", icon: languageIcons.Hausa },
-  { id: "7", name: "Oromo", icon: languageIcons.Oromo },
-  { id: "8", name: "Zulu", icon: languageIcons.Zulu },
-  { id: "9", name: "Shona", icon: languageIcons.Shona },
-];
+import { useLanguage } from "../../../context/LanguageContext";
 
 const LanguageToLearnPage = () => {
-  // ======== Navigation==============
   const navigation = useNavigation();
+  const { setSelectedLanguage } = useLanguage(); // Access setSelectedLanguage from the context
 
-  const ToProficiencypage = () => {
+  const ToProficiencyPage = () => {
     navigation.navigate("ProficiencyPage");
   };
 
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [languages, setLanguages] = useState([]);
+  const [localSelectedLanguage, setLocalSelectedLanguage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const selectLanguage = (id) => {
-    setSelectedLanguage(id);
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetch(
+          "https://muta-app.fastgenapp.com/get-all-languages"
+        );
+        const data = await response.json();
+        if (!data.error) {
+          const formattedLanguages = data.data.map((language) => ({
+            id: language.language_id,
+            name: language.languageName,
+            icon: { uri: language.languageIcon },
+          }));
+          setLanguages(formattedLanguages);
+        }
+      } catch (error) {
+        console.error("Failed to fetch languages:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLanguages();
+  }, []);
+
+
+  // Saving the entire language detail to the context
+  const selectLanguage = (language) => {
+    setLocalSelectedLanguage(language.id);
+    setSelectedLanguage(language); 
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[
         styles.languageOption,
-        selectedLanguage === item.id && styles.selectedLanguageOption,
+        localSelectedLanguage === item.id && styles.selectedLanguageOption,
       ]}
-      onPress={() => selectLanguage(item.id)}
+      onPress={() => selectLanguage(item)}
     >
       <Image source={item.icon} style={styles.languageIcon} />
       <Text
         style={[
           styles.languageText,
-          selectedLanguage === item.id && styles.selectedLanguageText,
+          localSelectedLanguage === item.id && styles.selectedLanguageText,
         ]}
       >
         {item.name}
@@ -80,19 +88,23 @@ const LanguageToLearnPage = () => {
         </TouchableOpacity>
       </View>
       <Text style={styles.header}>I want to learn...</Text>
-      <FlatList
-        data={languages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.languageContainer}
-        columnWrapperStyle={styles.languageRow}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={colors.buttonBackground} />
+      ) : (
+        <FlatList
+          data={languages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.languageContainer}
+          columnWrapperStyle={styles.languageRow}
+        />
+      )}
       <CustomButton
         title="CONTINUE"
         style={styles.continueButton}
-        onPress={ToProficiencypage}
-        disabled={!selectedLanguage}
+        onPress={ToProficiencyPage}
+        disabled={!localSelectedLanguage}
       />
     </View>
   );
@@ -111,9 +123,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   header: {
-    fontSize: 24,
+    fontSize: 20,
     color: colors.text,
-    fontWeight: "bold",
+    fontFamily: "Axiforma-Medium",
     marginBottom: 20,
     marginTop: 30,
   },

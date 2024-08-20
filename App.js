@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import MyStack from "./src/navigation/MyStack";
+import { LanguageProvider } from "./context/LanguageContext";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -21,18 +22,20 @@ export default function App() {
   }, [fontsLoaded]);
 
   if (!fontsLoaded) {
-    return null; 
+    return null;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <MyStack />
-      <StatusBar
-        style="auto"
-        barStyle="dark-content"
-        backgroundColor="#FFFFFF"
-      />
-    </SafeAreaView>
+    <LanguageProvider>
+      <SafeAreaView style={styles.container}>
+        <MyStack />
+        <StatusBar
+          style="auto"
+          barStyle="dark-content"
+          backgroundColor="#FFFFFF"
+        />
+      </SafeAreaView>
+    </LanguageProvider>
   );
 }
 

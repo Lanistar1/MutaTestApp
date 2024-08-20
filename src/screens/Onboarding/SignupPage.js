@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,52 +7,93 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import CustomButton from "../../components/Button";
-import colors from "../../components/colors";
-import CustomInput from "../../components/CustomInput";
-import { useNavigation } from "@react-navigation/native";
+  Alert,
+} from 'react-native';
+import CustomButton from '../../components/Button';
+import colors from '../../components/colors';
+import CustomInput from '../../components/CustomInput';
+import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const SignupPage = () => {
   const navigation = useNavigation();
+  const { selectedLanguage } = useLanguage();
 
-  const [email, setEmail] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailChange = (text) => {
-    setEmail(text);
-  };
+  const handleEmailChange = (text) => setEmail(text);
+  const handleFirstNameChange = (text) => setFirstName(text);
+  const handleLastNameChange = (text) => setLastName(text);
+  const handlePasswordChange = (text) => setPassword(text);
+  const toggleSecureTextEntry = () => setSecureTextEntry((prev) => !prev);
 
-  const handleFirstNameChange = (text) => {
-    setFirstName(text);
-  };
+  const handleSignup = async () => {
+    if (!selectedLanguage) {
+      Alert.alert('Error', 'Please select a language to learn.');
+      return;
+    }
 
-  const handleLastNameChange = (text) => {
-    setLastName(text);
-  };
+    const payload = {
+      email,
+      firstName,
+      lastName,
+      password,
+      signinType: 'password',
+      spokenLanguage: selectedLanguage.id,
+      userType: 'learner',
+      country: {
+        name: "Nigeria",
+        code: "NG",
+        flag: "https://cdn.jsdelivr.net/npm/country-flag-emoji-json@2.0.0/dist/images/NG.svg",
+      },
+    };
 
-  const handlePasswordChange = (text) => {
-    setPassword(text);
-  };
+    try {
+      console.log(payload);
+      setLoading(true);
+      const response = await fetch(
+        'https://muta-app.fastgenapp.com/create-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-  const toggleSecureTextEntry = () => {
-    setSecureTextEntry((prev) => !prev);
+      const result = await response.json();
+
+      if (response.ok && !result.error) {
+        Alert.alert('Success', 'You have successfully signed up!');
+        navigation.navigate('LoginPage');
+      } else {
+        throw new Error(result.message || 'Signup failed.');
+      }
+    } catch (error) {
+      console.error('Signup failed:', error);
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
     >
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Image
-              source={require("../../assets/icons/Backbutton.png")}
+              source={require('../../assets/icons/Backbutton.png')}
               style={styles.icon}
             />
           </TouchableOpacity>
@@ -60,25 +101,25 @@ const SignupPage = () => {
         <Text style={styles.title}>Enter name and password</Text>
 
         <CustomInput
-          label="Email"
+          label='Email'
           value={email}
           onChangeText={handleEmailChange}
         />
 
         <CustomInput
-          label="First name"
+          label='First name'
           value={firstName}
           onChangeText={handleFirstNameChange}
         />
 
         <CustomInput
-          label="Last name"
+          label='Last name'
           value={lastName}
           onChangeText={handleLastNameChange}
         />
 
         <CustomInput
-          label="Password"
+          label='Password'
           value={password}
           onChangeText={handlePasswordChange}
           secureTextEntry={secureTextEntry}
@@ -87,23 +128,24 @@ const SignupPage = () => {
 
         <TouchableOpacity>
           <Text style={styles.PasswordEnforceText}>
-            Use 8 or more character
+            Use 8 or more characters
           </Text>
         </TouchableOpacity>
 
         <CustomButton
-          title="LOG IN"
-          onPress={() => console.log("Login pressed")}
-          disabled={!email || !password}
+          title='SIGN UP'
+          onPress={handleSignup}
+          disabled={!email || !password || loading}
           style={[
-            styles.loginButton,
-            !email || !password ? styles.disabledButton : null,
+            styles.signupButton,
+            (!email || !password || loading) ? styles.disabledButton : null,
           ]}
+          loading={loading}
         />
 
         <TouchableOpacity>
           <Text style={styles.signupText}>
-            Don’t have a Muta account?{" "}
+            Don’t have a Muta account?{' '}
             <Text style={styles.signupLink}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
@@ -115,12 +157,12 @@ const SignupPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#191B20",
+    backgroundColor: '#191B20',
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
   iconContainer: {
-    alignItems: "start",
+    alignItems: 'start',
     marginBottom: 20,
   },
   icon: {
@@ -130,31 +172,31 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    color: "#FFFFFF",
-    textAlign: "center",
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 20,
-    fontFamily: "Axiforma-Medium",
+    fontFamily: 'Axiforma-Medium',
   },
   PasswordEnforceText: {
-    color: "#7E7E7E",
+    color: '#7E7E7E',
     fontSize: 14,
-    textAlign: "left",
+    textAlign: 'left',
     marginBottom: 20,
     marginTop: -10,
   },
-  loginButton: {
+  signupButton: {
     marginBottom: 20,
   },
   disabledButton: {
-    backgroundColor: "#2A474D",
+    backgroundColor: '#2A474D',
   },
   signupText: {
-    textAlign: "center",
-    color: "#7E7E7E",
+    textAlign: 'center',
+    color: '#7E7E7E',
   },
   signupLink: {
     color: colors.linkActive,
-    textDecorationLine: "underline",
+    textDecorationLine: 'underline',
   },
 });
 

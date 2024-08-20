@@ -9,6 +9,7 @@ import LoginWith from "../screens/LoginScreen/LoginWith";
 import SignupWith from "../screens/Onboarding/SignupWith";
 import LoginPage from "../screens/LoginScreen/LoginPage";
 import SignupPage from "../screens/Onboarding/SignupPage";
+import BottomTabNavigator from "../navigation/BottomTabNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ const MyStack = () => {
         <Stack.Screen name="ProficiencyPage" component={ProficiencyPage} />
         <Stack.Screen name="SignupWith" component={SignupWith} />
         <Stack.Screen name="SignupPage" component={SignupPage} />
+        <Stack.Screen name="Main" component={BottomTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

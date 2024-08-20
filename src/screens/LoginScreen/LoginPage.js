@@ -7,6 +7,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import CustomButton from "../../components/Button";
 import colors from "../../components/colors";
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleEmailChange = (text) => {
     setEmail(text);
@@ -30,6 +32,54 @@ const LoginPage = () => {
 
   const toggleSecureTextEntry = () => {
     setSecureTextEntry((prev) => !prev);
+  };
+
+  const handleLoginPress = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    const loginPayload = {
+      email: email,
+      password: password,
+    };
+
+    try {
+      const response = await fetch("https://muta-app.fastgenapp.com/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginPayload),
+      });
+
+      const data = await response.json();
+
+      if (!data.error) {
+        // Handle successful login
+        Alert.alert("Success", "Login successful!");
+
+        // Navigate to the main app or home screen
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Main" }],
+        });
+
+        // Optionally save the auth token or user data here
+        // localStorage.setItem("authToken", data.token);
+      } else {
+        // Handle login failure
+        Alert.alert("Login Failed", data.message || "Invalid credentials.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "An error occurred while trying to log in.");
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,12 +119,13 @@ const LoginPage = () => {
 
         <CustomButton
           title="LOG IN"
-          onPress={() => console.log("Login pressed")}
-          disabled={!email || !password}
+          onPress={handleLoginPress}
+          disabled={!email || !password || loading}
           style={[
             styles.loginButton,
-            !email || !password ? styles.disabledButton : null,
+            (!email || !password || loading) ? styles.disabledButton : null,
           ]}
+          loading={loading} // Optionally add loading state to the button
         />
 
         <TouchableOpacity>
