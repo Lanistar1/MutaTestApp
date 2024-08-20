@@ -1,20 +1,43 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, SafeAreaView } from "react-native";
+import React, { useEffect } from "react";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import MyStack from "./src/navigation/MyStack";
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    "Axiforma-Light": require("./src/assets/fonts/fonnts.com-Axiforma_Light.ttf"),
+    "Axiforma-Regular": require("./src/assets/fonts/fonnts.com-Axiforma_Regular.ttf"),
+    "Axiforma-Medium": require("./src/assets/fonts/fonnts.com-Axiforma_Medium.ttf"),
+    "Axiforma-Black": require("./src/assets/fonts/fonnts.com-Axiforma-Black.ttf"),
+    "Magica-Black": require("./src/assets/fonts/Magica.otf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null; 
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <MyStack />
+      <StatusBar
+        style="auto"
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
