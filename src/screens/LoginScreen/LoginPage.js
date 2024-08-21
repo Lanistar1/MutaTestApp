@@ -68,8 +68,6 @@ const LoginPage = () => {
           routes: [{ name: "Main" }],
         });
 
-        // Optionally save the auth token or user data here
-        // localStorage.setItem("authToken", data.token);
       } else {
         // Handle login failure
         Alert.alert("Login Failed", data.message || "Invalid credentials.");
